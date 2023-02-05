@@ -87,6 +87,7 @@ mod.hook.register('script_pre_init', 'nbin pre init', function()
     end
     matrix:add_post_init_hook(function()
         local set_up = false
+        local current_voice = nil
         nb:init()
         params:add_separator("nb midi in", "nb midi in")
         params:add_option("nb in midi source", "midi source", midi_device_names, 1, false)
@@ -122,7 +123,11 @@ mod.hook.register('script_pre_init', 'nbin pre init', function()
                 end
                 pressure.options = options
                 pressure.count = tab.count(options)
+                if pressure:get() > pressure.count then
+                    pressure:set(1)
+                end
             end
+            current_voice = player
             _menu.rebuild_params()
         end)
 
