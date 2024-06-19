@@ -109,6 +109,7 @@ local function midi_target(x)
 end
 
 mod.hook.register('script_pre_init', 'nbin pre init', function()
+    midi_device_names = {}
     for i = 1, #midi.vports do -- query all ports
         midi_device[i] = midi.connect(i) -- connect each device
         table.insert(midi_device_names, "port " .. i .. ": " .. util.trim_string_to_width(midi_device[i].name, 40)) -- register its name
