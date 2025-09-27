@@ -32,7 +32,7 @@ end
 -- end post-init hack block
 
 local midi_device = {} -- container for connected midi devices
-local midi_device_names = { "none" }
+local midi_device_names = { }
 local target = nil
 
 local old_event = nil
@@ -93,11 +93,12 @@ local function process_midi(data)
 end
 
 local function midi_target(x)
-    if x > 1 then
+    x = x - 1  -- Account for the <disabled> device name at the top of the list
+    if x > 0 then
         if target ~= nil then
             midi_device[target].event = old_event
         end
-        target = x - 1
+        target = x
         old_event = midi_device[target].event
         midi_device[target].event = process_midi
     else
@@ -109,7 +110,13 @@ local function midi_target(x)
 end
 
 mod.hook.register('script_pre_init', 'nbin pre init', function()
-    midi_device_names = {}
+    -- Build a list of devices to display in the params
+    -- Insert a <disabled> device name at the head of the list
+    -- This entry has to be at index 1, because the params system doesn't understand
+    -- a list with an entry at index 0.  As a result, each of the devices will have
+    -- an index in midi_device that is one less than its indes in midi_device_names.
+    -- This discrepancy is handled in midi_target.
+    midi_device_names = { "<disabled>" }
     for i = 1, #midi.vports do -- query all ports
         midi_device[i] = midi.connect(i) -- connect each device
         table.insert(midi_device_names, "port " .. i .. ": " .. util.trim_string_to_width(midi_device[i].name, 40)) -- register its name
