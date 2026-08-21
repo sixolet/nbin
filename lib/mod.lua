@@ -62,7 +62,7 @@ local function process_midi(data)
        elseif d.type == "pitchbend" then
 	  local bend_st = (util.round(d.val / 2)) / 8192 * 2 - 1 -- Convert to -1 to 1
 	  for n, p2 in pairs(notes[d.ch]) do
-	     p2:pitch_bend(n, bend_st * params:get("nb in pitch bend range"))
+	     p2:pitch_bend(n, bend_st * params:get("nb_in_pitch_bend_range"))
 	  end
        elseif d.type == "channel_pressure" then
 	  local normalized = d.val / 127
@@ -134,13 +134,13 @@ mod.hook.register('script_post_init', 'nbin post init', function()
     local current_voice = nil
     nb:init()
     params:add_separator("nb midi in", "nb midi in")
-    params:add_option("nb in midi source", "midi source", midi_device_names, 1, false)
+    params:add_option("nb_in_midi_source", "midi source", midi_device_names, 1, false)
     params:add_option("nb_in_midi_channel", "channel", midi_channels, 1)
-    params:add_number("nb in pitch bend range", "bend range", 2, 24, 12)
-    params:set_action("nb in midi source", midi_target)
+    params:add_number("nb_in_pitch_bend_range", "bend range", 2, 24, 12)
+    params:set_action("nb_in_midi_source", midi_target)
     clock.run(function()
         clock.sleep(0.5)
-        params:lookup_param("nb in midi source"):bang()
+        params:lookup_param("nb_in_midi_source"):bang()
         params:lookup_param("nb_in_voice"):bang()
         set_up = true
     end)
