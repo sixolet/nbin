@@ -50,51 +50,51 @@ local function process_midi(data)
     local p = params:lookup_param("nb_in_voice"):get_player()
     local d = midi.to_msg(data)
 
-    if params:get("nb_in_midi_channel") == 1 or d.ch == params:get("nb_in_midi_channel") - 1 then -- Compensage for omni ch as the first option.
-       if d.type == "note_on" then
-	  p:note_on(d.note, d.vel / 127)
-	  notes[d.ch][d.note] = p
-       elseif d.type == "note_off" then
-	  if notes[d.ch][d.note] ~= nil then
-	     notes[d.ch][d.note]:note_off(d.note)
-	     notes[d.ch][d.note] = nil
-	  end
-       elseif d.type == "pitchbend" then
-	  local bend_st = (util.round(d.val / 2)) / 8192 * 2 - 1 -- Convert to -1 to 1
-	  for n, p2 in pairs(notes[d.ch]) do
+    if params:get("nb_in_midi_channel") == 1 or d.ch == params:get("nb_in_midi_channel") - 1 then -- Compensate for omni-channel as the first option.
+        if d.type == "note_on" then
+	    p:note_on(d.note, d.vel / 127)
+	    notes[d.ch][d.note] = p
+        elseif d.type == "note_off" then
+	    if notes[d.ch][d.note] ~= nil then
+	       notes[d.ch][d.note]:note_off(d.note)
+	       notes[d.ch][d.note] = nil
+	    end
+	elseif d.type == "pitchbend" then
+	    local bend_st = (util.round(d.val / 2)) / 8192 * 2 - 1 -- Convert to -1 to 1
+	     for n, p2 in pairs(notes[d.ch]) do
 	     p2:pitch_bend(n, bend_st * params:get("nb_in_pitch_bend_range"))
-	  end
-       elseif d.type == "channel_pressure" then
-	  local normalized = d.val / 127
-	  local normalized2 = 2 * util.clamp(normalized - 0.5, 0, 0.5)
-	  normalized2 = normalized2 * params:get("nb_in_pressure_2_sens")
-	  local key1 = params:string("nb_in_pressure_1")
-	  local key2 = params:string("nb_in_pressure_2")
+	     end
+	elseif d.type == "channel_pressure" then
+	    local normalized = d.val / 127
+	    local normalized2 = 2 * util.clamp(normalized - 0.5, 0, 0.5)
+	    normalized2 = normalized2 * params:get("nb_in_pressure_2_sens")
+	    local key1 = params:string("nb_in_pressure_1")
+	    local key2 = params:string("nb_in_pressure_2")
 
-	  for n, p2 in pairs(notes[d.ch]) do
-	     if key1 ~= "none" then
-                p2:modulate_note(n, key1, normalized)
-	     end
-	     if key2 ~= "none" then
-                p2:modulate_note(n, key2, normalized2)
-	     end
-	  end
-       elseif d.type == "key_pressure" then
-	  local normalized = d.val / 127
-	  local normalized2 = 2 * util.clamp(normalized - 0.5, 0, 0.5)
-	  normalized2 = normalized2 * params:get("nb_in_pressure_2_sens")
-	  local key1 = params:string("nb_in_pressure_1")
-	  local key2 = params:string("nb_in_pressure_2")
-	  if notes[d.ch][d.note] ~= nil then
-	     local p2 = notes[d.ch][d.note]
-	     if key1 ~= "none" then
-                p2:modulate_note(n, key1, normalized)
-	     end
-	     if key2 ~= "none" then
-                p2:modulate_note(n, key2, normalized2)
-	     end
-	  end
-       end
+	    for n, p2 in pairs(notes[d.ch]) do
+	        if key1 ~= "none" then
+		    p2:modulate_note(n, key1, normalized)
+		end
+		if key2 ~= "none" then
+		    p2:modulate_note(n, key2, normalized2)
+		end
+	    end
+	elseif d.type == "key_pressure" then
+	    local normalized = d.val / 127
+	    local normalized2 = 2 * util.clamp(normalized - 0.5, 0, 0.5)
+	    normalized2 = normalized2 * params:get("nb_in_pressure_2_sens")
+	    local key1 = params:string("nb_in_pressure_1")
+	    local key2 = params:string("nb_in_pressure_2")
+	    if notes[d.ch][d.note] ~= nil then
+	        local p2 = notes[d.ch][d.note]
+	        if key1 ~= "none" then
+                    p2:modulate_note(n, key1, normalized)
+		end
+		if key2 ~= "none" then
+		   p2:modulate_note(n, key2, normalized2)
+		end
+	    end
+	end
     end
 end
 
