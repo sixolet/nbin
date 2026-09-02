@@ -83,10 +83,10 @@ local function process_midi(data)
         if notes[d.ch][d.note] ~= nil then
             local p2 = notes[d.ch][d.note]
             if key1 ~= "none" then
-                p2:modulate_note(n, key1, normalized)
+                p2:modulate_note(d.note, key1, normalized)
             end
             if key2 ~= "none" then
-                p2:modulate_note(n, key2, normalized2)
+                p2:modulate_note(d.note, key2, normalized2)
             end
         end
     end
@@ -94,18 +94,18 @@ end
 
 local function midi_target(x)
     x = x - 1  -- Account for the <disabled> device name at the top of the list
-    if x > 0 then
-        if target ~= nil then
-            midi_device[target].event = old_event
-        end
-        target = x
-        old_event = midi_device[target].event
-        midi_device[target].event = process_midi
-    else
-        if target ~= nil then
-            midi_device[target].event = old_event
-        end
+    -- Always restore first. Re-banging the same port used to save
+    -- process_midi as old_event, so disabling never returned MIDI to the script.
+    if target ~= nil then
+        midi_device[target].event = old_event
         target = nil
+        old_event = nil
+    end
+    if x > 0 and midi_device[x] ~= nil then
+        target = x
+        old_event = midi_device[x].event
+        if old_event == process_midi then old_event = nil end
+        midi_device[x].event = process_midi
     end
 end
 
